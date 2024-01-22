@@ -1,25 +1,14 @@
 <?php
 
-$string = "ts1omewUWUWnRAxJ6GKz03e7pkV";
 
-if (substr($string, 0, 3) === "ts1") {
-    $formula = "ts1";
+$string = "ts5UQXjIGTSiML3VMt1Ujj6";
+
+if (preg_match('/^ts([1-5])/', $string, $matches)) {
+    $formula = "ts".$matches[1];
+} else {
+    errorResponse(743);
 }
-else if (substr($string, 0, 3) === "ts2") {
-    $formula = "ts2";
-}
-else if (substr($string, 0, 3) === "ts3") {
-    $formula = "ts3";
-}
-else if (substr($string, 0, 3) === "ts4") {
-    $formula = "ts4";
-}
-else if (substr($string, 0, 3) === "ts5") {
-    $formula = "ts5";
-}
-else {
-    echo "Wrong Code!!!";
-}
+
 $string = substr($string, 3);
 
 
@@ -27,7 +16,7 @@ $string = substr($string, 3);
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "encrypting_rule";
+$dbname = "ajaira_db";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -42,23 +31,32 @@ $data = [];
 while($row = $result->fetch_assoc()) {
     $data[$row[$formula]] = $row["id"];
 }
+
 $decrypt = "";
 
 if (strlen($string) % 2 == 0) {
     $pairs = str_split($string, 2);
     foreach ($pairs as $pair) {
-        $decrypt = $decrypt.chr($data[$pair]);
+        if(!empty($data[$pair])) {
+            $decrypt = $decrypt.chr($data[$pair]);
+        } else {
+            errorResponse(743);
+        }
     }
 } else {
-    echo "The length of the string is not even, so it cannot be split into pairs.";
+    errorResponse(743);
 }
 
+$response = ["success" => true, "Message" => $decrypt];
+echo json_encode($response);
+exit;
 
-// $decrypt = ""; // Initialize $decrypt before the loop
 
-// foreach (str_split($string) as $char) {
-//     // echo $char;
-//     $decrypt = $decrypt . $data[ord($char)];
-// }
 
-echo $decrypt;
+
+function errorResponse($status)
+{
+    $response = ["success" => false, "Message" => "Wrong Code!"];
+    echo json_encode($response);
+    exit;
+}
